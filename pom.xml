@@ -89,6 +89,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
+          <archive><manifest><mainClass>org.example.WordCountRemote</mainClass></manifest></archive>
         </configuration>
         <executions>
           <execution>
