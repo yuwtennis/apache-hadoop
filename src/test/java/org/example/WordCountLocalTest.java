@@ -7,7 +7,7 @@ import org.junit.Test;
 /**
  * Unit test for simple App.
  */
-public class WordCountTest
+public class WordCountLocalTest
 {
     /**
      * Rigorous Test :-)

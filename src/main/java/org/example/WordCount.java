@@ -14,7 +14,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib .output.FileOutputFormat;
 
 
-public class WordCount
+public class WordCountLocal
 {
     public static class TokenizerMapper
         extends Mapper<Object, Text, Text, IntWritable>{
@@ -54,14 +54,9 @@ public class WordCount
     {
         // Init job client
         Configuration conf = new Configuration();
-
-        conf.set("yarn.resourcemanager.address", "localhost:8088");
-        conf.set("mapreduce.framework.name","yarn");
-        conf.set("fs.default.name","hdfs://localhost:9000");
-
         try {
-            Job job = Job.getInstance(conf, "word Count");
-            job.setJarByClass(WordCount.class);
+            Job job = Job.getInstance(conf, "Word Count Local");
+            job.setJarByClass(WordCountLocal.class);
             job.setMapperClass(TokenizerMapper.class);
             job.setCombinerClass(IntSumReducer.class);
             job.setReducerClass(IntSumReducer.class);
