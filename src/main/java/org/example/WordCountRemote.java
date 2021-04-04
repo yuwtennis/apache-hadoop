@@ -54,11 +54,14 @@ public class WordCountRemote
     {
         // Init job client
         Configuration conf = new Configuration();
-        conf.set("fs.default.name", "hdfs://localhost:9000");
+        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        conf.set("yarn.resourcemanager.address", "localhost:8088");
+        conf.set("mapreduce.framework.name", "yarn");
         conf.set("mapred.job.tracker","hdfs://localhost:9000");
+        conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
 
         try {
-            Job job = Job.getInstance(conf, "Word Count Local");
+            Job job = Job.getInstance(conf, "Word Count on remote cluster ");
             job.setJarByClass(WordCountRemote.class);
             job.setMapperClass(TokenizerMapper.class);
             job.setCombinerClass(IntSumReducer.class);
