@@ -88,6 +88,11 @@
         <version>3.3.0</version>
         <configuration>
           <descriptorRefs><descriptorRef>jar-with-dependencies</descriptorRef></descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>org.example.WordCount</mainClass>
+            </manifest>
+          </archive>
         </configuration>
         <executions>
           <execution>
