@@ -54,6 +54,11 @@ public class WordCount
     {
         // Init job client
         Configuration conf = new Configuration();
+
+        conf.set("yarn.resourcemanager.address", "localhost:8088");
+        conf.set("mapreduce.framework.name","yarn");
+        conf.set("fs.default.name","hdfs://localhost:9000");
+
         try {
             Job job = Job.getInstance(conf, "word Count");
             job.setJarByClass(WordCount.class);
