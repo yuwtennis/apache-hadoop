@@ -1,6 +1,8 @@
 package org.example;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileContext;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
@@ -9,18 +11,11 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
-import org.apache.hadoop.yarn.api.records.LocalResource;
-import org.apache.hadoop.yarn.client.api.YarnClient;
-import org.apache.hadoop.yarn.client.api.YarnClientApplication;
-import org.apache.hadoop.yarn.exceptions.YarnException;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.StringTokenizer;
+
+import org.apache.hadoop.yarn.webapp.hamlet2.Hamlet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -67,39 +62,38 @@ public class WordCountRemote
 
         // Init job client
         Configuration conf = new Configuration();
-//        conf.set("fs.defaultFS", "hdfs://localhost:9000");
-        conf.set("yarn.resourcemanager.address", "192.168.11.20:8032");
+
+        // Resource manager address port
+        conf.set("yarn.resourcemanager.address", System.getenv("REMOTE_RM_ADDRESS"));
+
+        // Submit job to yarn resource manager
         conf.set("mapreduce.framework.name", "yarn");
-        conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
 
-        // Start yarn client
-        YarnClient yarnClient = YarnClient.createYarnClient();
-        yarnClient.init(conf);
-        yarnClient.start();
+        // Namenode address port
+        conf.set("fs.defaultFS", System.getenv("REMOTE_NAME_NODE_ADDRESS"));
 
-        // Set up application context
         try {
-            // First create application
-            YarnClientApplication app = yarnClient.createApplication();
-            GetNewApplicationResponse appResponse = app.getNewApplicationResponse();
+            Job job = Job.getInstance(conf, WordCountRemote.class.toString());
+            job.setJarByClass(WordCountRemote.class);
+            job.setMapperClass(TokenizerMapper.class);
 
-            LOG.info("Initialized application. AppId: %s , Available Resources:%s",
-                    appResponse.getApplicationId().toString(),
-                    appResponse.getMaximumResourceCapability().toString());
+            // Agg per map
+            job.setCombinerClass(IntSumReducer.class);
 
-            // Set application (submission) context and prepare application container containing ApplicationMaster
-            ApplicationSubmissionContext appContext = app.getApplicationSubmissionContext();
-            ApplicationId appId = appContext.getApplicationId();
+            // Agg across whole maps
+            job.setReducerClass(IntSumReducer.class);
 
-            appContext.setKeepContainersAcrossApplicationAttempts(true);
-            appContext.setApplicationName(appName);
+            job.setOutputKeyClass(Text.class);
+            job.setOutputValueClass(IntWritable.class);
+            FileInputFormat.addInputPath(job, new Path(args[0]));
+            FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
-            Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
-
-            LOG.info("Copy App Master jar from local filesystem and add to local environment.");
-        } catch (YarnException e) {
-            e.printStackTrace();
+            job.submit();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

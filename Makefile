@@ -3,6 +3,6 @@ clean:
 	mvn clean
 build: clean
 	mvn package
-run:
-	cd $(HADOOP_PATH) ; \
-	$(HADOOP_PATH)/bin/hadoop jar $(JAR_FILE) org.example.WordCountRemote
+deploy:
+	cd $(HADOOP_HOME) ; \
+	$(HADOOP_HOME)/bin/hadoop jar $(JAR_PATH) org.example.WordCountRemote
